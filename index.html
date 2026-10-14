@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="description" content="Daily JEE and NEET study task manager with offline support.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>Daily Study Task Manager - JEE & NEET</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --physics: #3b82f6;
+      --chem: #10b981;
+      --math: #f59e0b;
+      --bio: #8b5cf6;
+      --success: #16a34a;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    header {
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .mode-switch-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 9999px;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .progress-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .progress-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .progress-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .progress-date {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .reset-time-badge {
+      font-size: 0.72rem;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    .progress-percent {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #10b981);
+      border-radius: 9999px;
+      transition: width 0.35s ease;
+    }
+
+    .progress-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 540px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-muted);
+    }
+
+    select, input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+      background: var(--primary-dark);
+    }
+
+    .task-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-text-action {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-text-action:hover {
+      text-decoration: underline;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .task-item.completed {
+      background: #f1f5f9;
+      opacity: 0.75;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .task-checkbox {
+      width: 19px;
+      height: 19px;
+      cursor: pointer;
+      accent-color: var(--success);
+    }
+
+    .task-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-badge-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: #fff;
+    }
+
+    .badge-physics { background: var(--physics); }
+    .badge-chemistry { background: var(--chem); }
+    .badge-mathematics { background: var(--math); }
+    .badge-biology { background: var(--bio); }
+
+    .badge-cat {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .task-text {
+      font-size: 0.93rem;
+      font-weight: 500;
+    }
+
+    .task-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .btn-delete:hover {
+      color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 34px 12px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+
+    .history-card {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 18px;
+    }
+
+    .history-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Daily Study Task Manager</h1>
+    <p class="subtitle">Quickly log lectures, problem sets, and notes for your exam</p>
+  </header>
+
+  <div class="mode-switch-container">
+    <div class="mode-switch">
+      <button id="jeeModeBtn" class="mode-btn active">🎯 JEE Mode (PCM)</button>
+      <button id="neetModeBtn" class="mode-btn">🩺 NEET Mode (PCB)</button>
+    </div>
+  </div>
+
+  <div class="progress-card">
+    <div class="progress-header">
+      <div class="progress-title-wrap">
+        <div>
+          <span class="progress-title">Daily Completion</span>
+          <span class="reset-time-badge">Resets 3:00 AM</span>
+        </div>
+        <span id="currentDateText" class="progress-date">Loading date...</span>
+      </div>
+      <span id="progressPercent" class="progress-percent">0%</span>
+    </div>
+    <div class="progress-track">
+      <div id="progressBarFill" class="progress-bar-fill"></div>
+    </div>
+    <div class="progress-footer">
+      <span id="progressCounts">0 of 0 tasks completed</span>
+      <span id="progressEncouragement">Set your daily targets below</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="subjectSelect">Subject</label>
+        <select id="subjectSelect"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="chapterSelect">Chapter</label>
+        <select id="chapterSelect"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="categorySelect">Work Category</label>
+        <select id="categorySelect">
+          <option value="Lecture">Doing a Lecture</option>
+          <option value="Module">Solving Questions: Module</option>
+          <option value="PYQs">Solving Questions: PYQs</option>
+          <option value="Reference Book">Solving Questions: Reference Book</option>
+          <option value="Assignment">Solving Questions: Assignment</option>
+          <option value="Short Notes (Make)">Short Notes: Make Notes</option>
+          <option value="Short Notes (Revise)">Short Notes: Revise Notes</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="detailsInput">Details / Target (Optional)</label>
+        <input type="text" id="detailsInput" placeholder="e.g. Lect 03, Q1–30, or Ex 1.2">
+      </div>
+    </div>
+
+    <button id="addBtn" class="btn-add">+ Add to Daily Plan</button>
+  </div>
+
+  <div class="task-list-header">
+    <span id="listSummaryText">Today's Tasks</span>
+    <div class="header-actions">
+      <button id="toggleHistoryBtn" class="btn-text-action">Study History</button>
+      <button id="manualResetBtn" class="btn-text-action" style="color:var(--danger);">Reset Day</button>
+    </div>
+  </div>
+
+  <ul id="taskList" class="task-list"></ul>
+  <div id="emptyState" class="empty-state">No tasks added yet. Select a subject and chapter above to start!</div>
+
+  <div id="historyCard" class="history-card">
+    <h3>Past Study Records</h3>
+    <ul id="historyList" class="history-list">
+      <li>No past study days recorded yet.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const syllabus = {
+    Physics: [
+      "Units & Measurements", "Motion in a Straight Line", "Motion in a Plane (Vectors & Projectile)",
+      "Laws of Motion & Friction", "Work, Energy & Power", "System of Particles & Rotational Motion",
+      "Gravitation", "Mechanical Properties of Solids", "Mechanical Properties of Fluids",
+      "Thermal Properties & Thermodynamics", "Kinetic Theory of Gases", "Oscillations (SHM)",
+      "Waves & Acoustics", "Electrostatics & Capacitance", "Current Electricity",
+      "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction",
+      "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments",
+      "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms & Nuclei", "Semiconductor Electronics"
+    ],
+    Chemistry: [
+      "Some Basic Concepts (Mole Concept)", "Structure of Atom", "Periodic Table & Periodicity",
+      "Chemical Bonding & Molecular Structure", "Thermodynamics & Thermochemistry",
+      "Equilibrium (Chemical & Ionic)", "Redox Reactions", "Solutions", "Electrochemistry",
+      "Chemical Kinetics", "d & f Block Elements", "Coordination Compounds",
+      "Purification & General Organic Chemistry (GOC)", "Hydrocarbons", "Haloalkanes & Haloarenes",
+      "Alcohols, Phenols & Ethers", "Aldehydes, Ketones & Carboxylic Acids", "Amines & Diazonium Salts",
+      "Biomolecules", "p-Block Elements"
+    ],
+    Mathematics: [
+      "Sets, Relations & Functions", "Trigonometric Functions", "Complex Numbers & Quadratic Equations",
+      "Permutations & Combinations", "Binomial Theorem", "Sequences & Series (AP, GP)",
+      "Straight Lines & Circles", "Conic Sections (Parabola, Ellipse, Hyperbola)",
+      "Limits, Continuity & Differentiability", "Application of Derivatives (AOD)",
+      "Indefinite & Definite Integrals", "Differential Equations", "Vector Algebra",
+      "Three-Dimensional Geometry (3D)", "Probability", "Matrices & Determinants"
+    ],
+    Biology: [
+      "The Living World & Biological Classification", "Plant Kingdom", "Animal Kingdom",
+      "Morphology of Flowering Plants", "Anatomy of Flowering Plants", "Structural Organisation in Animals",
+      "Cell: The Unit of Life & Cell Cycle", "Biomolecules (Bio)", "Photosynthesis in Higher Plants",
+      "Respiration in Plants", "Plant Growth & Development", "Breathing & Exchange of Gases",
+      "Body Fluids & Circulation", "Excretory Products & Elimination", "Locomotion & Movement",
+      "Neural Control & Chemical Coordination", "Sexual Reproduction in Flowering Plants",
+      "Human Reproduction & Reproductive Health", "Principles of Inheritance and Variation",
+      "Molecular Basis of Inheritance", "Evolution", "Human Health and Disease",
+      "Biotechnology: Principles and Processes", "Biotechnology and its Applications",
+      "Organisms and Populations", "Ecosystem & Biodiversity Conservation"
+    ]
+  };
+
+  const modeSubjects = {
+    jee: ["Physics", "Chemistry", "Mathematics"],
+    neet: ["Physics", "Chemistry", "Biology"]
+  };
+
+  const jeeModeBtn = document.getElementById('jeeModeBtn');
+  const neetModeBtn = document.getElementById('neetModeBtn');
+  const subjectSelect = document.getElementById('subjectSelect');
+  const chapterSelect = document.getElementById('chapterSelect');
+  const categorySelect = document.getElementById('categorySelect');
+  const detailsInput = document.getElementById('detailsInput');
+  const addBtn = document.getElementById('addBtn');
+  const taskList = document.getElementById('taskList');
+  const emptyState = document.getElementById('emptyState');
+  const currentDateText = document.getElementById('currentDateText');
+  const progressPercent = document.getElementById('progressPercent');
+  const progressBarFill = document.getElementById('progressBarFill');
+  const progressCounts = document.getElementById('progressCounts');
+  const progressEncouragement = document.getElementById('progressEncouragement');
+  const listSummaryText = document.getElementById('listSummaryText');
+  const manualResetBtn = document.getElementById('manualResetBtn');
+  const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+  const historyCard = document.getElementById('historyCard');
+  const historyList = document.getElementById('historyList');
+
+  let currentMode = localStorage.getItem('study_exam_mode') || 'jee';
+  let tasks = JSON.parse(localStorage.getItem('study_tasks_v4') || '[]');
+  let history = JSON.parse(localStorage.getItem('study_history_v4') || '[]');
+
+  function getStudyDayDate(dateObj = new Date()) {
+    const shifted = new Date(dateObj.getTime() - (3 * 60 * 60 * 1000));
+    const year = shifted.getFullYear();
+    const month = String(shifted.getMonth() + 1).padStart(2, '0');
+    const day = String(shifted.getDate()).padStart(2, '0');
+    return {
+      dateString: `${year}-${month}-${day}`,
+      displayString: shifted.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }
+
+  function checkThreeAmRollover() {
+    const studyDay = getStudyDayDate();
+    const currentStudyDate = studyDay.dateString;
+    const lastActiveStudyDate = localStorage.getItem('study_last_3am_date');
+
+    if (lastActiveStudyDate && lastActiveStudyDate !== currentStudyDate) {
+      if (tasks.length > 0) {
+        const completedCount = tasks.filter(t => t.completed).length;
+        history.unshift({
+          date: lastActiveStudyDate,
+          total: tasks.length,
+          completed: completedCount,
+          percentage: Math.round((completedCount / tasks.length) * 100)
+        });
+        localStorage.setItem('study_history_v4', JSON.stringify(history.slice(0, 30)));
+      }
+      tasks = tasks.filter(t => !t.completed);
+      localStorage.setItem('study_tasks_v4', JSON.stringify(tasks));
+    }
+    localStorage.setItem('study_last_3am_date', currentStudyDate);
+  }
+
+  function displayDate() {
+    const studyDay = getStudyDayDate();
+    currentDateText.textContent = `Study Day: ${studyDay.displayString}`;
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    localStorage.setItem('study_exam_mode', mode);
+    if (mode === 'jee') {
+      jeeModeBtn.classList.add('active');
+      neetModeBtn.classList.remove('active');
+    } else {
+      neetModeBtn.classList.add('active');
+      jeeModeBtn.classList.remove('active');
+    }
+    updateSubjectDropdown();
+  }
+
+  function updateSubjectDropdown() {
+    const subjects = modeSubjects[currentMode];
+    const prev = subjectSelect.value;
+    subjectSelect.innerHTML = subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    subjectSelect.value = subjects.includes(prev) ? prev : subjects[0];
+    updateChapters();
+  }
+
+  function updateChapters() {
+    const subject = subjectSelect.value;
+    const chapters = syllabus[subject] || [];
+    chapterSelect.innerHTML = chapters.map(ch => `<option value="${ch}">${ch}</option>`).join('');
+  }
+
+  function saveAndRender() {
+    localStorage.setItem('study_tasks_v4', JSON.stringify(tasks));
+    renderTasksAndProgress();
+  }
+
+  function renderTasksAndProgress() {
+    taskList.innerHTML = '';
+    const total = tasks.length;
+    let completed = 0;
+
+    if (total === 0) {
+      emptyState.style.display = 'block';
+      progressBarFill.style.width = '0%';
+      progressPercent.textContent = '0%';
+      progressCounts.textContent = '0 of 0 tasks completed';
+      progressEncouragement.textContent = 'Set your daily targets below';
+      listSummaryText.textContent = "Today's Tasks (0)";
+      return;
+    }
+
+    emptyState.style.display = 'none';
+
+    tasks.forEach((task, index) => {
+      if (task.completed) completed++;
+      const li = document.createElement('li');
+      li.className = `task-item ${task.completed ? 'completed' : ''}`;
+      const subjectClass = `badge-${task.subject.toLowerCase()}`;
+
+      li.innerHTML = `
+        <div class="task-left">
+          <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} data-index="${index}">
+          <div class="task-details">
+            <div class="task-badge-row">
+              <span class="badge ${subjectClass}">${task.subject}</span>
+              <span class="badge badge-cat">${task.category}</span>
+            </div>
+            <div class="task-text">${task.chapter}</div>
+            ${task.details ? `<div class="task-note">${task.details}</div>` : ''}
+          </div>
+        </div>
+        <button class="btn-delete" title="Delete task" data-index="${index}">&times;</button>
+      `;
+      taskList.appendChild(li);
+    });
+
+    const percentage = Math.round((completed / total) * 100);
+    progressBarFill.style.width = `${percentage}%`;
+    progressPercent.textContent = `${percentage}%`;
+    progressCounts.textContent = `${completed} of ${total} tasks completed`;
+    listSummaryText.textContent = `Today's Tasks (${total})`;
+
+    if (percentage === 100) {
+      progressEncouragement.textContent = '🎉 All daily targets completed!';
+      progressBarFill.style.background = 'var(--success)';
+    } else if (percentage >= 50) {
+      progressEncouragement.textContent = '💪 Halfway there, keep pushing!';
+      progressBarFill.style.background = 'linear-gradient(90deg, #3b82f6, #10b981)';
+    } else {
+      progressEncouragement.textContent = '🚀 Keep going, one task at a time!';
+      progressBarFill.style.background = 'linear-gradient(90deg, #3b82f6, #60a5fa)';
+    }
+
+    document.querySelectorAll('.task-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        tasks[e.target.getAttribute('data-index')].completed = e.target.checked;
+        saveAndRender();
+      });
+    });
+
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        tasks.splice(e.target.getAttribute('data-index'), 1);
+        saveAndRender();
+      });
+    });
+  }
+
+  function renderHistory() {
+    if (history.length === 0) {
+      historyList.innerHTML = '<li>No past study days recorded yet.</li>';
+      return;
+    }
+    historyList.innerHTML = history.map(item => `
+      <li style="padding:6px 0; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between;">
+        <span><strong>${item.date}</strong></span>
+        <span>${item.completed}/${item.total} done (${item.percentage}%)</span>
+      </li>
+    `).join('');
+  }
+
+  addBtn.addEventListener('click', () => {
+    const subject = subjectSelect.value;
+    const chapter = chapterSelect.value;
+    const category = categorySelect.value;
+    const details = detailsInput.value.trim();
+    if (!chapter) return;
+
+    tasks.push({ subject, chapter, category, details, completed: false });
+    detailsInput.value = '';
+    saveAndRender();
+  });
+
+  jeeModeBtn.addEventListener('click', () => setMode('jee'));
+  neetModeBtn.addEventListener('click', () => setMode('neet'));
+  subjectSelect.addEventListener('change', updateChapters);
+
+  manualResetBtn.addEventListener('click', () => {
+    if (tasks.length === 0) return;
+    if (confirm("Reset current study day? Completed tasks will be archived and pending tasks kept.")) {
+      tasks = tasks.filter(t => !t.completed);
+      saveAndRender();
+    }
+  });
+
+  toggleHistoryBtn.addEventListener('click', () => {
+    const isVisible = historyCard.style.display === 'block';
+    historyCard.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) renderHistory();
+  });
+
+  displayDate();
+  checkThreeAmRollover();
+  setMode(currentMode);
+  renderTasksAndProgress();
+</script>
+
+<script>
+  // Register the offline cache worker when served from HTTPS or localhost.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch((error) => {
+        console.error('Service worker registration failed:', error);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
